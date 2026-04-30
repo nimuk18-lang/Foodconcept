@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MAXIMO Mobile · Heineken Mongolia</title>
+<style>
+:root {
+  --c1:#0A3D6B; --c2:#1565C0; --c3:#42A5F5; --c4:#E3F2FD;
+  --ok:#2E7D32; --ok-l:#E8F5E9;
+  --warn:#E65100; --warn-l:#FFF8E1;
+  --danger:#B71C1C; --danger-l:#FFEBEE;
+  --bg:#F4F6FA; --card:#fff;
+  --text:#1A1A2E; --muted:#6B7280;
+  --border:#E5E7EB;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ===== LAYOUT ===== */
+#app{max-width:420px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--card);position:relative;box-shadow:0 0 40px rgba(0,0,0,.12);}
+
+/* TOP BAR */
+#topbar{background:var(--c1);color:#fff;padding:12px 16px 10px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;}
+#topbar .logo{font-size:13px;font-weight:600;letter-spacing:.4px;}
+#topbar .sub{font-size:10px;opacity:.6;margin-top:1px;}
+#topbar .time{margin-left:auto;font-size:11px;opacity:.7;text-align:right;}
+#back-btn{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;display:none;}
+
+/* BOTTOM NAV */
+#bottomnav{display:flex;background:var(--card);border-top:1px solid var(--border);position:sticky;bottom:0;z-index:100;}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;cursor:pointer;border:none;background:none;color:var(--muted);font-size:10px;gap:3px;transition:color .15s;}
+.nav-tab .icon{font-size:20px;line-height:1;}
+.nav-tab.active{color:var(--c2);}
+.nav-tab .badge{position:absolute;top:4px;right:50%;margin-right:-22px;background:var(--danger);color:#fff;font-size:9px;border-radius:8px;padding:1px 5px;font-weight:600;}
+
+/* PAGES */
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.page{display:none;padding:12px;}
+.page.active{display:block;}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.card-title .see-all{font-size:11px;color:var(--c2);font-weight:400;cursor:pointer;}
+
+/* BADGES */
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;}
+.b-open{background:#DBEAFE;color:#1D4ED8;}
+.b-prog{background:#FEF3C7;color:#92400E;}
+.b-done{background:#D1FAE5;color:#065F46;}
+.b-hold{background:#EDE9FE;color:#5B21B6;}
+.b-over{background:var(--danger-l);color:var(--danger);}
+
+/* PRIORITY */
+.p1{color:var(--danger);font-weight:700;font-size:11px;}
+.p2{color:var(--warn);font-weight:700;font-size:11px;}
+.p3{color:var(--c2);font-weight:600;font-size:11px;}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:10px 10px 0 0;}
+.kpi.blue::before{background:var(--c2);}
+.kpi.green::before{background:var(--ok);}
+.kpi.warn::before{background:var(--warn);}
+.kpi.red::before{background:var(--danger);}
+.kpi-lbl{font-size:10px;color:var(--muted);margin-bottom:3px;}
+.kpi-val{font-size:22px;font-weight:700;color:var(--text);line-height:1;}
+.kpi-sub{font-size:10px;margin-top:2px;}
+.sub-up{color:var(--ok);} .sub-down{color:var(--danger);}
+
+/* WO LIST ITEM */
+.wo-item{border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:8px;cursor:pointer;transition:box-shadow .15s;position:relative;}
+.wo-item:hover{box-shadow:0 2px 10px rgba(0,0,0,.08);}
+.wo-item.p1-border{border-left:4px solid var(--danger);}
+.wo-item.p2-border{border-left:4px solid var(--warn);}
+.wo-item.p3-border{border-left:4px solid var(--c3);}
+.wo-top{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.wo-num{font-size:12px;font-weight:700;color:var(--c2);}
+.wo-desc{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;}
+.wo-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;}
+
+/* ASSET ITEM */
+.asset-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.asset-item:last-child{border-bottom:none;}
+.asset-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.asset-info{flex:1;}
+.asset-name{font-size:13px;font-weight:500;color:var(--text);}
+.asset-loc{font-size:11px;color:var(--muted);}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.dot-ok{background:var(--ok);}
+.dot-warn{background:var(--warn);}
+.dot-danger{background:var(--danger);}
+
+/* INS ITEM */
+.ins-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.ins-item:last-child{border-bottom:none;}
+.ins-name{flex:1;color:var(--text);}
+.ins-due{font-size:11px;}
+
+/* SECTION HEADER */
+.sec-hdr{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin:14px 0 8px;}
+
+/* PROGRESS BAR */
+.pbar{height:6px;background:#E5E7EB;border-radius:4px;overflow:hidden;margin-top:4px;}
+.pbar-fill{height:100%;border-radius:4px;}
+
+/* ===== PRINT FORM ===== */
+#print-page{display:none;padding:0;}
+#print-page.active{display:block;}
+
+.print-header{background:var(--c1);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;}
+.print-header h2{font-size:15px;font-weight:600;flex:1;}
+.print-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:500;}
+.print-btn:hover{background:rgba(255,255,255,.3);}
+
+.wo-form{padding:14px;}
+.form-section{border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden;}
+.form-sec-title{background:#F8FAFC;border-bottom:1px solid var(--border);padding:8px 12px;font-size:11px;font-weight:700;color:var(--c2);letter-spacing:.5px;text-transform:uppercase;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);}
+.form-row:last-child{border-bottom:none;}
+.form-row.full{grid-template-columns:1fr;}
+.form-cell{padding:8px 12px;}
+.form-label{font-size:10px;color:var(--muted);margin-bottom:2px;font-weight:500;}
+.form-val{font-size:13px;color:var(--text);font-weight:500;}
+.form-val.big{font-size:17px;font-weight:700;color:var(--c2);}
+.form-val.status{font-size:12px;}
+
+.checklist-item{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border);}
+.checklist-item:last-child{border-bottom:none;}
+.checkbox{width:16px;height:16px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.checked{border-color:var(--ok);background:var(--ok);color:#fff;}
+.checklist-text{flex:1;font-size:12px;color:var(--text);}
+.checklist-note{font-size:10px;color:var(--muted);margin-top:1px;}
+
+.sig-box{border:1.5px dashed var(--border);border-radius:8px;height:60px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;margin:10px 12px;}
+
+.qr-box{display:flex;align-items:center;gap:12px;padding:12px;}
+.qr-box svg{flex-shrink:0;}
+.qr-info{flex:1;}
+.qr-info .qr-wo{font-size:16px;font-weight:700;color:var(--c2);}
+.qr-info .qr-asset{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* ===== QR SCANNER ===== */
+#qr-page{display:none;padding:12px;}
+#qr-page.active{display:block;}
+
+.qr-scanner-wrap{background:#000;border-radius:var(--radius);overflow:hidden;position:relative;aspect-ratio:1;margin-bottom:12px;}
+#qr-video{width:100%;height:100%;object-fit:cover;display:block;}
+.qr-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.qr-frame{width:60%;aspect-ratio:1;position:relative;}
+.qr-frame::before,.qr-frame::after,.qr-corner-br,.qr-corner-bl{content:'';position:absolute;width:20px;height:20px;border-color:#fff;border-style:solid;}
+.qr-frame::before{top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
+.qr-frame::after{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
+.qr-corner-br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
+.qr-corner-bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px;}
+.qr-scan-line{position:absolute;left:0;right:0;height:2px;background:rgba(66,165,245,.8);animation:scan 2s linear infinite;top:0;}
+@keyframes scan{0%{top:5%}50%{top:90%}100%{top:5%}}
+.qr-hint{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;}
+
+.qr-result{background:var(--ok-l);border:1px solid var(--ok);border-radius:10px;padding:14px;margin-bottom:10px;display:none;}
+.qr-result.show{display:block;}
+.qr-result-title{font-size:12px;font-weight:700;color:var(--ok);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.qr-result-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(46,125,50,.2);}
+.qr-result-row:last-child{border-bottom:none;}
+.qr-result-key{color:var(--muted);}
+.qr-result-val{font-weight:600;color:var(--text);}
+
+.qr-manual{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.qr-manual-title{font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text);}
+.qr-input-row{display:flex;gap:8px;}
+.qr-input-row input{flex:1;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;outline:none;color:var(--text);background:var(--card);}
+.qr-input-row input:focus{border-color:var(--c2);}
+.qr-input-row button{background:var(--c2);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;}
+
+.demo-qr-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.demo-btn{background:var(--c4);border:1px solid var(--c3);border-radius:8px;padding:8px;font-size:11px;color:var(--c2);font-weight:600;cursor:pointer;text-align:center;}
+.demo-btn:hover{background:#BBDEFB;}
+
+/* START CAM BTN */
+.cam-btn{width:100%;background:var(--c2);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.cam-btn.stop{background:#E53E3E;}
+.cam-btn:disabled{background:var(--muted);cursor:not-allowed;}
+
+/* TOAST */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1A2E;color:#fff;border-radius:10px;padding:10px 18px;font-size:13px;z-index:999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* PRINT MEDIA */
+@media print {
+  #bottomnav,#topbar,#back-btn,.print-btn,.cam-btn,.no-print{display:none!important;}
+  body{background:#fff;}
+  #app{box-shadow:none;max-width:none;}
+  .page{display:block!important;}
+  #print-page{display:block!important;}
+  #qr-page,#page-home,#page-wo,#page-assets{display:none!important;}
+  .form-section{break-inside:avoid;}
+}
+
+/* DETAIL VIEW */
+.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;}
+.detail-overlay.show{display:flex;}
+.detail-sheet{background:var(--card);border-radius:16px 16px 0 0;padding:0;width:100%;max-height:85vh;overflow-y:auto;}
+.detail-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 8px;}
+.detail-content{padding:0 16px 24px;}
+.detail-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px;}
+.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-key{color:var(--muted);}
+.detail-val{font-weight:500;color:var(--text);text-align:right;}
+.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+.action-btn{border-radius:10px;padding:11px;font-size:13px;font-weight:600;border:none;cursor:pointer;text-align:center;}
+.action-primary{background:var(--c2);color:#fff;}
+.action-secondary{background:var(--bg);color:var(--c2);border:1px solid var(--c2);}
+.action-danger{background:var(--danger-l);color:var(--danger);border:1px solid var(--danger);}
+.action-print{background:var(--ok-l);color:var(--ok);border:1px solid var(--ok);}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <button id="back-btn" onclick="goBack()">← Буцах</button>
+  <div>
+    <div class="logo">🏭 MAXIMO Mobile</div>
+    <div class="sub">Heineken Mongolia · Үйлдвэр</div>
+  </div>
+  <div class="time" id="clock"></div>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+
+<!-- ===== HOME PAGE ===== -->
+<div id="page-home" class="page active">
+  <div class="kpi-strip" style="margin-top:4px;">
+    <div class="kpi blue"><div class="kpi-lbl">Нийт WO</div><div class="kpi-val">47</div><div class="kpi-sub sub-down">↑ 8 өнөөдөр</div></div>
+    <div class="kpi red"><div class="kpi-lbl">Яаралтай</div><div class="kpi-val">3</div><div class="kpi-sub sub-down">Шууд шийдэх</div></div>
+    <div class="kpi green"><div class="kpi-lbl">Asset uptime</div><div class="kpi-val">91.9%</div><div class="kpi-sub sub-up">↑ Норм</div></div>
+    <div class="kpi warn"><div class="kpi-lbl">Inspection</div><div class="kpi-val">2</div><div class="kpi-sub sub-down">Хоцорсон</div></div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="sec-hdr">Хурдан үйлдэл</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+    <div onclick="showTab('qr')" style="background:var(--c4);border:1px solid var(--c3);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;">
+      <div style="font-size:24px;margin-bottom:4px;">📷</div>
+      <div style="font-size:11px;font-weight:600;color:var(--c2);">QR Скан</div>
+    </div>
+    <div onclick="openPrintForm(woData[0])" style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;">
+      <div style="font-size:24px;margin-bottom:4px;">🖨️</div>
+      <div style="font-size:11px;font-weight:600;color:var(--ok);">WO Хэвлэх</div>
+    </div>
+    <div onclick="showTab('assets')" style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;">
+      <div style="font-size:24px;margin-bottom:4px;">⚙️</div>
+      <div style="font-size:11px;font-weight:600;color:var(--warn);">Asset</div>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div style="background:var(--danger-l);border:1px solid #FCA5A5;border-radius:10px;padding:10px 12px;margin-bottom:10px;">
+    <div style="font-size:11px;font-weight:700;color:var(--danger);margin-bottom:6px;">⚠️ Яаралтай мэдэгдэл</div>
+    <div style="font-size:12px;color:var(--danger);margin-bottom:3px;" onclick="openWODetail(woData[0])">• WO-2460: Хөргөлтийн систем R-001 – P1 →</div>
+    <div style="font-size:12px;color:var(--danger);margin-bottom:3px;" onclick="openWODetail(woData[5])">• WO-2455: Бойлер #2 яаралтай – P1 →</div>
+    <div style="font-size:12px;color:var(--danger);" onclick="openWODetail(woData[3])">• WO-2457: Хоолой засвар хоцорсон – P1 →</div>
+  </div>
+
+  <!-- My WO today -->
+  <div class="card-title">Миний өнөөдрийн ажил <span class="see-all" onclick="showTab('wo')">Бүгд →</span></div>
+  <div id="my-wo-list"></div>
+
+  <!-- Upcoming inspection -->
+  <div class="card-title" style="margin-top:10px;">Ойрын Inspection</div>
+  <div class="card" style="padding:10px 12px;">
+    <div class="ins-item"><div class="dot dot-danger"></div><div class="ins-name">Хөргөлтийн компрессор</div><div class="ins-due" style="color:var(--danger);">Хоцорсон</div></div>
+    <div class="ins-item"><div class="dot dot-warn"></div><div class="ins-name">Цахилгаан хуваарилагч</div><div class="ins-due" style="color:var(--warn);">Өнөөдөр</div></div>
+    <div class="ins-item"><div class="dot dot-warn"></div><div class="ins-name">Усны шүүлтүүр</div><div class="ins-due" style="color:var(--warn);">Маргааш</div></div>
+    <div class="ins-item"><div class="dot dot-ok"></div><div class="ins-name">Агаарын шахуурга</div><div class="ins-due">5/2</div></div>
+    <div class="ins-item"><div class="dot dot-ok"></div><div class="ins-name">Генератор туршилт</div><div class="ins-due">5/5</div></div>
+  </div>
+</div>
+
+<!-- ===== WO LIST PAGE ===== -->
+<div id="page-wo" class="page">
+  <div style="display:flex;gap:8px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px;">
+    <button class="badge b-prog" style="cursor:pointer;padding:5px 12px;white-space:nowrap;" onclick="filterWO('all')">Бүгд (47)</button>
+    <button class="badge" style="background:var(--danger-l);color:var(--danger);cursor:pointer;padding:5px 12px;white-space:nowrap;" onclick="filterWO('p1')">P1 Яаралтай (3)</button>
+    <button class="badge b-open" style="cursor:pointer;padding:5px 12px;white-space:nowrap;" onclick="filterWO('open')">Нээлттэй</button>
+    <button class="badge b-done" style="cursor:pointer;padding:5px 12px;white-space:nowrap;" onclick="filterWO('done')">Дууссан</button>
+  </div>
+  <div id="wo-list-full"></div>
+</div>
+
+<!-- ===== ASSETS PAGE ===== -->
+<div id="page-assets" class="page">
+  <input type="search" placeholder="🔍 Asset хайх..." style="width:100%;border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:13px;margin-bottom:12px;outline:none;color:var(--text);background:var(--card);" oninput="filterAssets(this.value)">
+  <div class="sec-hdr">⚡ Цахилгаан</div>
+  <div class="card" style="padding:10px 12px;" id="assets-list"></div>
+</div>
+
+<!-- ===== QR SCANNER PAGE ===== -->
+<div id="qr-page" class="page">
+  <div style="text-align:center;margin-bottom:10px;">
+    <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">📷 QR Код Сканнер</div>
+    <div style="font-size:12px;color:var(--muted);">Asset болон WO-ийн QR кодыг уншина</div>
+  </div>
+
+  <div class="qr-scanner-wrap">
+    <video id="qr-video" playsinline autoplay muted></video>
+    <div class="qr-overlay">
+      <div class="qr-frame">
+        <div class="qr-corner-br"></div>
+        <div class="qr-corner-bl"></div>
+        <div class="qr-scan-line"></div>
+      </div>
+    </div>
+    <div id="cam-status" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.7);">
+      <div style="text-align:center;color:#fff;">
+        <div style="font-size:36px;margin-bottom:8px;">📷</div>
+        <div style="font-size:13px;opacity:.8;">Камер дэлгэц дуусгана уу</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="cam-btn" id="cam-btn" onclick="toggleCamera()">📷 Камер нээх</button>
+
+  <div class="qr-hint">Хуурамч демо горимд QR кодын дугааруудыг доор гараар оруулж болно</div>
+
+  <div id="qr-result" class="qr-result"></div>
+
+  <div class="qr-manual">
+    <div class="qr-manual-title">Гараар оруулах / Демо сканнер</div>
+    <div class="qr-input-row">
+      <input type="text" id="qr-input" placeholder="WO-2460 эсвэл R-001..." onkeydown="if(event.key==='Enter')scanManual()">
+      <button onclick="scanManual()">Хайх</button>
+    </div>
+    <div class="demo-qr-btns">
+      <div class="demo-btn" onclick="scanCode('WO-2460')">📋 WO-2460</div>
+      <div class="demo-btn" onclick="scanCode('WO-2459')">📋 WO-2459</div>
+      <div class="demo-btn" onclick="scanCode('R-001')">⚙️ R-001</div>
+      <div class="demo-btn" onclick="scanCode('E-001')">⚡ E-001</div>
+      <div class="demo-btn" onclick="scanCode('B-002')">🔥 B-002</div>
+      <div class="demo-btn" onclick="scanCode('P-011')">🏭 P-011</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRINT FORM PAGE ===== -->
+<div id="print-page" class="page">
+  <div class="print-header">
+    <h2 id="print-title">Work Order хэвлэх</h2>
+    <button class="print-btn" onclick="window.print()">🖨️ Хэвлэх</button>
+  </div>
+  <div class="wo-form" id="wo-form-content"></div>
+</div>
+
+</div><!-- /content -->
+
+<!-- BOTTOM NAV -->
+<div id="bottomnav">
+  <button class="nav-tab active" id="tab-home" onclick="showTab('home')">
+    <span class="icon">🏠</span>Нүүр
+  </button>
+  <button class="nav-tab" id="tab-wo" onclick="showTab('wo')" style="position:relative;">
+    <span class="icon">📋</span>Work Order
+    <span class="badge">12</span>
+  </button>
+  <button class="nav-tab" id="tab-qr" onclick="showTab('qr')">
+    <span class="icon">📷</span>QR Скан
+  </button>
+  <button class="nav-tab" id="tab-assets" onclick="showTab('assets')">
+    <span class="icon">⚙️</span>Asset
+  </button>
+</div>
+</div>
+
+<!-- WO DETAIL SHEET -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail(event)">
+  <div class="detail-sheet" id="detail-sheet">
+    <div class="detail-handle"></div>
+    <div class="detail-content" id="detail-content"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ===== DATA =====
+const woData = [
+  {id:'WO-2460',type:'CM',desc:'Хөргөлтийн систем алдаа — R-001',asset:'R-001',loc:'Хөргөлт байр',resp:'Б.Дорж',pri:'P1',created:'2026-04-29',due:'2026-04-29',status:'Явагдаж байна',notes:'Компрессор дуу гарч байна. Даралт бага. Мэргэжилтэн дуудах.'},
+  {id:'WO-2459',type:'PM',desc:'MCC самбар B шалгалт',asset:'E-002',loc:'Цах. өрөө 2',resp:'Г.Батаа',pri:'P2',created:'2026-04-29',due:'2026-04-30',status:'Нээлттэй',notes:'14 хоногийн ердийн PM шалгалт.'},
+  {id:'WO-2458',type:'PM',desc:'Агаарын шахуурга тос солих',asset:'H-001',loc:'Дээвэр',resp:'Д.Мөнх',pri:'P3',created:'2026-04-28',due:'2026-04-29',status:'Дууссан',notes:'Тос солих ажил амжилттай дууссан.'},
+  {id:'WO-2457',type:'CM',desc:'Ус дамжуулах хоолой засвар',asset:'W-003',loc:'Насос өрөө',resp:'Б.Дорж',pri:'P1',created:'2026-04-27',due:'2026-04-28',status:'Хойшлогдсон',notes:'Spare part хүлээгдэж байна — Seal kit SP-0780.'},
+  {id:'WO-2456',type:'PM',desc:'Дамжуулах тууз тохируулга',asset:'P-011',loc:'Шугам 1',resp:'Х.Энх',pri:'P3',created:'2026-04-26',due:'2026-04-27',status:'Дууссан',notes:'Тохируулга хийж дууссан.'},
+  {id:'WO-2455',type:'PM',desc:'Бойлер #2 яаралтай засвар',asset:'B-002',loc:'Бойлерын өрөө',resp:'Б.Дорж',pri:'P1',created:'2026-04-29',due:'2026-04-29',status:'Нээлттэй',notes:'Даралтын хавхлага ажиллахгүй байна.'},
+  {id:'WO-2454',type:'PM',desc:'Генератор сарын шалгалт',asset:'E-003',loc:'Гадна байр',resp:'Г.Батаа',pri:'P3',created:'2026-04-25',due:'2026-04-30',status:'Явагдаж байна',notes:'Сарын ердийн PM.'},
+  {id:'WO-2453',type:'Ins',desc:'Гал унтраах системийн шалгалт',asset:'FS-001',loc:'Бүх байр',resp:'Д.Мөнх',pri:'P2',created:'2026-04-24',due:'2026-05-01',status:'Нээлттэй',notes:'Жилийн inspection.'},
+];
+
+const assetData = [
+  {id:'E-001',name:'Үндсэн трансформатор 1000kVA',cat:'⚡ Цахилгаан',loc:'Цах. өрөө 1',model:'Siemens 3F',status:'ok',statusText:'Ажиллаж байна'},
+  {id:'E-002',name:'MCC самбар B',cat:'⚡ Цахилгаан',loc:'Цах. өрөө 2',model:'ABB',status:'ok',statusText:'Ажиллаж байна'},
+  {id:'E-003',name:'Генератор 500kVA',cat:'⚡ Цахилгаан',loc:'Гадна байр',model:'Cummins C500',status:'ok',statusText:'Standby'},
+  {id:'W-001',name:'Усны насос #1',cat:'💧 Усны систем',loc:'Подвал',model:'Grundfos CR32',status:'ok',statusText:'Ажиллаж байна'},
+  {id:'W-003',name:'Усны шүүлтүүр',cat:'💧 Усны систем',loc:'Насос өрөө',model:'Pentair HF-200',status:'ok',statusText:'Ажиллаж байна'},
+  {id:'R-001',name:'Хөргөлтийн компрессор #1',cat:'❄️ Хөргөлт',loc:'Хөргөлт байр',model:'Bitzer 4HE-25Y',status:'danger',statusText:'Засварт'},
+  {id:'R-002',name:'Хөргөлтийн компрессор #2',cat:'❄️ Хөргөлт',loc:'Хөргөлт байр',model:'Bitzer 4HE-25Y',status:'ok',statusText:'Ажиллаж байна'},
+  {id:'H-001',name:'AHU агааржуулагч #1',cat:'🌬️ HVAC',loc:'Дээвэр',model:'Carrier 39M',status:'ok',statusText:'Ажиллаж байна'},
+  {id:'B-001',name:'Бойлер халаах #1',cat:'🔥 Халаалт',loc:'Бойлерын өрөө',model:'Buderus GB162',status:'ok',statusText:'Ажиллаж байна'},
+  {id:'B-002',name:'Бойлер халаах #2',cat:'🔥 Халаалт',loc:'Бойлерын өрөө',model:'Buderus GB162',status:'danger',statusText:'Дохио'},
+  {id:'P-011',name:'Дамжуулах тууз №1',cat:'🏭 Шугам',loc:'Шугам 1',model:'Intralox S400',status:'ok',statusText:'Ажиллаж байна'},
+  {id:'P-012',name:'Бөглөх машин',cat:'🏭 Шугам',loc:'Шугам 1',model:'KHS Innofill',status:'ok',statusText:'Ажиллаж байна'},
+];
+
+// ===== CLOCK =====
+function updateClock(){
+  const now=new Date();
+  document.getElementById('clock').innerHTML=now.toLocaleTimeString('mn-MN',{hour:'2-digit',minute:'2-digit'})+'<br>'+now.toLocaleDateString('mn-MN',{month:'short',day:'numeric'});
+}
+setInterval(updateClock,1000);updateClock();
+
+// ===== NAV =====
+let currentTab='home';
+function showTab(tab){
+  currentTab=tab;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  const page=document.getElementById('page-'+tab)||document.getElementById(tab+'-page');
+  if(page)page.classList.add('active');
+  const navBtn=document.getElementById('tab-'+tab);
+  if(navBtn)navBtn.classList.add('active');
+  document.getElementById('back-btn').style.display='none';
+  document.getElementById('bottomnav').style.display='flex';
+  if(tab==='wo')renderWOList(woData);
+  if(tab==='assets')renderAssets(assetData);
+  window.scrollTo(0,0);
+}
+
+function goBack(){
+  showTab(currentTab==='print'?'wo':'home');
+  document.getElementById('print-page').classList.remove('active');
+}
+
+// ===== HOME: My WO =====
+function renderMyWO(){
+  const myWOs=woData.filter(w=>w.resp==='Б.Дорж');
+  let h='';
+  myWOs.forEach(w=>{
+    const pClass=w.pri==='P1'?'p1-border':w.pri==='P2'?'p2-border':'p3-border';
+    const pColor=w.pri==='P1'?'p1':w.pri==='P2'?'p2':'p3';
+    const bClass=w.status==='Явагдаж байна'?'b-prog':w.status==='Дууссан'?'b-done':w.status==='Хойшлогдсон'?'b-hold':'b-open';
+    h+=`<div class="wo-item ${pClass}" onclick="openWODetail(woData.find(x=>x.id==='${w.id}'))">
+      <div class="wo-top"><span class="wo-num">${w.id}</span><span class="${pColor}">${w.pri}</span><span class="badge ${bClass}" style="margin-left:auto;">${w.status}</span></div>
+      <div class="wo-desc">${w.desc}</div>
+      <div class="wo-meta"><span>📍 ${w.loc}</span><span>📅 ${w.due}</span></div>
+    </div>`;
+  });
+  document.getElementById('my-wo-list').innerHTML=h;
+}
+renderMyWO();
+
+// ===== WO LIST =====
+function renderWOList(data){
+  let h='';
+  data.forEach(w=>{
+    const pClass=w.pri==='P1'?'p1-border':w.pri==='P2'?'p2-border':'p3-border';
+    const pColor=w.pri==='P1'?'p1':w.pri==='P2'?'p2':'p3';
+    const bClass=w.status==='Явагдаж байна'?'b-prog':w.status==='Дууссан'?'b-done':w.status==='Хойшлогдсон'?'b-hold':'b-open';
+    h+=`<div class="wo-item ${pClass}" onclick="openWODetail(woData.find(x=>x.id==='${w.id}'))">
+      <div class="wo-top"><span class="wo-num">${w.id}</span><span class="badge" style="background:#F0F4FF;color:#444;font-size:9px;">${w.type}</span><span class="${pColor}">${w.pri}</span><span class="badge ${bClass}" style="margin-left:auto;">${w.status}</span></div>
+      <div class="wo-desc">${w.desc}</div>
+      <div class="wo-meta"><span>⚙️ ${w.asset}</span><span>📍 ${w.loc}</span><span>👤 ${w.resp}</span><span>📅 ${w.due}</span></div>
+    </div>`;
+  });
+  document.getElementById('wo-list-full').innerHTML=h||'<div style="text-align:center;color:var(--muted);padding:30px;">Ажил олдсонгүй</div>';
+}
+
+function filterWO(type){
+  let data=woData;
+  if(type==='p1')data=woData.filter(w=>w.pri==='P1');
+  else if(type==='open')data=woData.filter(w=>w.status!=='Дууссан');
+  else if(type==='done')data=woData.filter(w=>w.status==='Дууссан');
+  renderWOList(data);
+}
+
+// ===== ASSETS =====
+function renderAssets(data){
+  let h='';
+  data.forEach(a=>{
+    const dotClass=a.status==='ok'?'dot-ok':a.status==='warn'?'dot-warn':'dot-danger';
+    const icoBg=a.cat.includes('⚡')?'#EFF6FF':a.cat.includes('💧')?'#F0FDFA':a.cat.includes('❄️')?'#EFF6FF':a.cat.includes('🌬️')?'#F0FDF4':a.cat.includes('🔥')?'#FFF7ED':'#FAF5FF';
+    h+=`<div class="asset-item" onclick="openAssetDetail('${a.id}')">
+      <div class="asset-icon" style="background:${icoBg};">${a.cat.split(' ')[0]}</div>
+      <div class="asset-info"><div class="asset-name">${a.id} · ${a.name}</div><div class="asset-loc">${a.loc} · ${a.model}</div></div>
+      <div class="dot ${dotClass}"></div>
+    </div>`;
+  });
+  document.getElementById('assets-list').innerHTML=h;
+}
+
+function filterAssets(val){
+  const filtered=assetData.filter(a=>
+    a.name.toLowerCase().includes(val.toLowerCase())||
+    a.id.toLowerCase().includes(val.toLowerCase())||
+    a.loc.toLowerCase().includes(val.toLowerCase())
+  );
+  renderAssets(filtered);
+}
+
+// ===== WO DETAIL SHEET =====
+function openWODetail(w){
+  if(!w)return;
+  const bClass=w.status==='Явагдаж байна'?'b-prog':w.status==='Дууссан'?'b-done':w.status==='Хойшлогдсон'?'b-hold':'b-open';
+  const pColor=w.pri==='P1'?'var(--danger)':w.pri==='P2'?'var(--warn)':'var(--c2)';
+  document.getElementById('detail-content').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <span style="font-size:20px;font-weight:800;color:var(--c2);">${w.id}</span>
+      <span class="badge ${bClass}">${w.status}</span>
+      <span style="font-weight:700;color:${pColor};margin-left:auto;">${w.pri}</span>
+    </div>
+    <div class="detail-title">${w.desc}</div>
+    <div class="detail-row"><span class="detail-key">Төрөл</span><span class="detail-val">${w.type}</span></div>
+    <div class="detail-row"><span class="detail-key">Asset</span><span class="detail-val">${w.asset}</span></div>
+    <div class="detail-row"><span class="detail-key">Байршил</span><span class="detail-val">${w.loc}</span></div>
+    <div class="detail-row"><span class="detail-key">Хариуцагч</span><span class="detail-val">👤 ${w.resp}</span></div>
+    <div class="detail-row"><span class="detail-key">Үүсгэсэн</span><span class="detail-val">${w.created}</span></div>
+    <div class="detail-row"><span class="detail-key">Дуусах хугацаа</span><span class="detail-val" style="color:${w.status!=='Дууссан'&&w.due<='2026-04-29'?'var(--danger)':'var(--text)'}">${w.due}</span></div>
+    <div class="detail-row"><span class="detail-key">Тэмдэглэл</span><span class="detail-val" style="text-align:right;max-width:200px;">${w.notes}</span></div>
+    <div class="action-btns">
+      <button class="action-btn action-primary" onclick="updateStatus('${w.id}')">✅ Статус өөрчлөх</button>
+      <button class="action-btn action-print" onclick="closeDetail();openPrintForm(woData.find(x=>x.id==='${w.id}'))">🖨️ Хэвлэх</button>
+      <button class="action-btn action-secondary" onclick="showToast('QR код үүслээ')">📷 QR үүсгэх</button>
+      <button class="action-btn action-danger" onclick="showToast('WO хойшлогдлоо')">⏸️ Хойшлуулах</button>
+    </div>`;
+  document.getElementById('detail-overlay').classList.add('show');
+}
+
+function openAssetDetail(id){
+  const a=assetData.find(x=>x.id===id);
+  if(!a)return;
+  const wos=woData.filter(w=>w.asset===id);
+  const dotClass=a.status==='ok'?'dot-ok':a.status==='warn'?'dot-warn':'dot-danger';
+  let woHtml=wos.length?wos.map(w=>`<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;"><span style="color:var(--c2);">${w.id}</span><span>${w.status}</span></div>`).join(''):'<div style="font-size:12px;color:var(--muted);">WO байхгүй</div>';
+  document.getElementById('detail-content').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="font-size:28px;">${a.cat.split(' ')[0]}</div>
+      <div><div style="font-size:16px;font-weight:700;color:var(--text);">${a.id}</div><div style="font-size:12px;color:var(--muted);">${a.cat}</div></div>
+      <div class="dot ${dotClass}" style="margin-left:auto;width:12px;height:12px;"></div>
+    </div>
+    <div class="detail-title">${a.name}</div>
+    <div class="detail-row"><span class="detail-key">Загвар</span><span class="detail-val">${a.model}</span></div>
+    <div class="detail-row"><span class="detail-key">Байршил</span><span class="detail-val">${a.loc}</span></div>
+    <div class="detail-row"><span class="detail-key">Статус</span><span class="detail-val">${a.statusText}</span></div>
+    <div style="margin-top:12px;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;">ХОЛБОГДОХ WORK ORDER</div>
+    ${woHtml}
+    <div class="action-btns">
+      <button class="action-btn action-primary" onclick="closeDetail();showToast('WO үүслээ: '+new Date().getTime().toString().slice(-4))">+ WO үүсгэх</button>
+      <button class="action-btn action-secondary" onclick="closeDetail();showToast('Inspection нэмлээ')">🔍 Inspection</button>
+    </div>`;
+  document.getElementById('detail-overlay').classList.add('show');
+}
+
+function closeDetail(e){
+  if(!e||e.target===document.getElementById('detail-overlay'))
+    document.getElementById('detail-overlay').classList.remove('show');
+}
+
+function updateStatus(id){
+  const statuses=['Нээлттэй','Явагдаж байна','Дууссан','Хойшлогдсон'];
+  const w=woData.find(x=>x.id===id);
+  const i=statuses.indexOf(w.status);
+  w.status=statuses[(i+1)%statuses.length];
+  showToast(id+' → '+w.status);
+  closeDetail();
+  renderMyWO();
+}
+
+// ===== PRINT FORM =====
+function openPrintForm(wo){
+  if(!wo)wo=woData[0];
+  document.getElementById('print-title').textContent='Work Order: '+wo.id;
+
+  // Generate simple QR SVG (data matrix pattern)
+  const qrSvg=generateQRSVG(wo.id);
+
+  const checklist=[
+    {text:'Ажлын байрны аюулгүй байдлыг шалгах',note:'PPE хувцас өмсөх',done:wo.status!=='Нээлттэй'},
+    {text:'Тоног төхөөрөмжийг гаргаж тасалгаа унтраах',note:'Lockout/Tagout',done:false},
+    {text:'Засварын ажлыг гүйцэтгэх',note:wo.desc,done:wo.status==='Дууссан'},
+    {text:'Туршилт болон шалгалт хийх',note:'Ажиллагааг нягтлах',done:wo.status==='Дууссан'},
+    {text:'Тоног төхөөрөмжийг буцааж ажиллуулах',note:'',done:wo.status==='Дууссан'},
+    {text:'WO дуусгах тэмдэглэл бичих',note:'',done:wo.status==='Дууссан'},
+  ];
+
+  const clHtml=checklist.map(c=>`
+    <div class="checklist-item">
+      <div class="checkbox ${c.done?'checked':''}">${c.done?'✓':''}</div>
+      <div><div class="checklist-text">${c.text}</div>${c.note?`<div class="checklist-note">${c.note}</div>`:''}</div>
+    </div>`).join('');
+
+  const bClass=wo.status==='Явагдаж байна'?'b-prog':wo.status==='Дууссан'?'b-done':wo.status==='Хойшлогдсон'?'b-hold':'b-open';
+
+  document.getElementById('wo-form-content').innerHTML=`
+    <!-- Header band -->
+    <div style="background:var(--c1);color:#fff;padding:12px 14px;margin:-14px -14px 14px;display:flex;align-items:center;gap:14px;border-radius:0;">
+      <div class="qr-box" style="padding:0;flex:1;">
+        ${qrSvg}
+        <div class="qr-info">
+          <div class="qr-wo">${wo.id}</div>
+          <div class="qr-asset" style="color:rgba(255,255,255,.7);">${wo.asset} · ${wo.loc}</div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:10px;opacity:.7;margin-bottom:2px;">Эрэмбэ</div>
+        <div style="font-size:22px;font-weight:800;color:${wo.pri==='P1'?'#FCA5A5':wo.pri==='P2'?'#FCD34D':'#93C5FD'}">${wo.pri}</div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-sec-title">Ерөнхий мэдээлэл</div>
+      <div class="form-row">
+        <div class="form-cell"><div class="form-label">WO дугаар</div><div class="form-val big">${wo.id}</div></div>
+        <div class="form-cell"><div class="form-label">Статус</div><div class="form-val status"><span class="badge ${bClass}">${wo.status}</span></div></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-cell"><div class="form-label">Тайлбар</div><div class="form-val">${wo.desc}</div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-cell"><div class="form-label">Төрөл</div><div class="form-val">${wo.type==='CM'?'Corrective Maintenance':wo.type==='PM'?'Preventive Maintenance':'Inspection'}</div></div>
+        <div class="form-cell"><div class="form-label">Эрэмбэ</div><div class="form-val ${wo.pri==='P1'?'p1':wo.pri==='P2'?'p2':'p3'}">${wo.pri} — ${wo.pri==='P1'?'Яаралтай':wo.pri==='P2'?'Чухал':'Ердийн'}</div></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-sec-title">Asset болон байршил</div>
+      <div class="form-row">
+        <div class="form-cell"><div class="form-label">Asset ID</div><div class="form-val">${wo.asset}</div></div>
+        <div class="form-cell"><div class="form-label">Байршил</div><div class="form-val">${wo.loc}</div></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-cell"><div class="form-label">Тэмдэглэл</div><div class="form-val">${wo.notes}</div></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-sec-title">Хугацаа болон хариуцагч</div>
+      <div class="form-row">
+        <div class="form-cell"><div class="form-label">Үүсгэсэн огноо</div><div class="form-val">${wo.created}</div></div>
+        <div class="form-cell"><div class="form-label">Дуусах хугацаа</div><div class="form-val">${wo.due}</div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-cell"><div class="form-label">Хариуцах инженер</div><div class="form-val">👤 ${wo.resp}</div></div>
+        <div class="form-cell"><div class="form-label">Тасаг</div><div class="form-val">Засварын алба</div></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-sec-title">Ажлын жагсаалт (Checklist)</div>
+      ${clHtml}
+    </div>
+
+    <div class="form-section">
+      <div class="form-sec-title">Ашигласан spare part</div>
+      <div class="form-row">
+        <div class="form-cell"><div class="form-label">Part дугаар</div><div class="form-val" style="color:var(--muted);">—</div></div>
+        <div class="form-cell"><div class="form-label">Тоо</div><div class="form-val" style="color:var(--muted);">—</div></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-cell" style="height:40px;"><div class="form-label">Нэмэлт материал</div></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-sec-title">Гарын үсэг</div>
+      <div class="form-row">
+        <div class="form-cell">
+          <div class="form-label">Инженер гарын үсэг</div>
+          <div class="sig-box" style="margin:6px 0 0;">Гарын үсэг зурах</div>
+        </div>
+        <div class="form-cell">
+          <div class="form-label">Ахлах инженер баталгаажуулалт</div>
+          <div class="sig-box" style="margin:6px 0 0;">Гарын үсэг зурах</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-cell"><div class="form-label">Дуусгасан огноо</div><div class="sig-box" style="height:32px;margin:4px 0 0;"></div></div>
+        <div class="form-cell"><div class="form-label">Хэвлэсэн огноо</div><div class="form-val" style="margin-top:10px;font-size:11px;color:var(--muted);">${new Date().toLocaleDateString('mn-MN')}</div></div>
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:10px;color:var(--muted);padding:10px 0;border-top:1px solid var(--border);margin-top:8px;">
+      Heineken Mongolia · MAXIMO CMMS v2.4.1 · ${wo.id}
+    </div>
+  `;
+
+  // Show print page
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('print-page').classList.add('active');
+  document.getElementById('bottomnav').style.display='none';
+  document.getElementById('back-btn').style.display='block';
+  window.scrollTo(0,0);
+}
+
+function generateQRSVG(text){
+  // Visual QR-like pattern using hash of text
+  const size=60;const cells=10;const cell=size/cells;
+  let seed=0;for(let i=0;i<text.length;i++)seed=(seed*31+text.charCodeAt(i))&0xFFFFFF;
+  const rand=(n)=>{seed=(seed*1664525+1013904223)&0xFFFFFF;return(seed>>n)&1;};
+
+  // Fixed finder patterns
+  const finder=(ox,oy)=>{
+    let s='';
+    const pat=[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]];
+    for(let r=0;r<7;r++)for(let c=0;c<7;c++)if(pat[r][c])s+=`<rect x="${(ox+c)*cell}" y="${(oy+r)*cell}" width="${cell}" height="${cell}" fill="#0A3D6B"/>`;
+    return s;
+  };
+
+  let dots='';
+  for(let r=0;r<cells;r++)for(let c=0;c<cells;c++){
+    if((r<7&&c<7)||(r<7&&c>=cells-7)||(r>=cells-7&&c<7))continue;
+    if(rand(1)&&rand(2))dots+=`<rect x="${c*cell}" y="${r*cell}" width="${cell*.8}" height="${cell*.8}" rx="1" fill="#0A3D6B" opacity=".9"/>`;
+  }
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="border-radius:4px;background:#fff;flex-shrink:0;">
+    ${finder(0,0)}${finder(cells-7,0)}${finder(0,cells-7)}
+    ${dots}
+  </svg>`;
+}
+
+// ===== QR SCANNER =====
+let cameraActive=false;let scanInterval=null;let stream=null;
+
+function toggleCamera(){
+  if(cameraActive){stopCamera();}else{startCamera();}
+}
+
+async function startCamera(){
+  const btn=document.getElementById('cam-btn');
+  const status=document.getElementById('cam-status');
+  btn.disabled=true;
+  btn.textContent='Камер нээж байна...';
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    const video=document.getElementById('qr-video');
+    video.srcObject=stream;
+    await video.play();
+    status.style.display='none';
+    cameraActive=true;
+    btn.disabled=false;
+    btn.textContent='⏹️ Камер хаах';
+    btn.classList.add('stop');
+    // Simulate auto-scan after 3s for demo
+    scanInterval=setTimeout(()=>{
+      const demos=['WO-2460','R-001','E-001','WO-2459'];
+      scanCode(demos[Math.floor(Math.random()*demos.length)]);
+    },3000);
+  }catch(e){
+    btn.disabled=false;
+    btn.textContent='📷 Камер нээх';
+    status.innerHTML='<div style="text-align:center;color:#fff;padding:20px;"><div style="font-size:24px;margin-bottom:8px;">🚫</div><div style="font-size:12px;">Камерт зөвшөөрөл олгоно уу</div><div style="font-size:10px;opacity:.7;margin-top:4px;">'+e.message+'</div></div>';
+    showToast('Камерт хандах зөвшөөрөл шаардлагатай');
+  }
+}
+
+function stopCamera(){
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  if(scanInterval){clearTimeout(scanInterval);scanInterval=null;}
+  cameraActive=false;
+  const btn=document.getElementById('cam-btn');
+  btn.textContent='📷 Камер нээх';
+  btn.classList.remove('stop');
+  document.getElementById('cam-status').style.display='flex';
+}
+
+function scanManual(){
+  const val=document.getElementById('qr-input').value.trim();
+  if(val)scanCode(val);
+}
+
+function scanCode(code){
+  document.getElementById('qr-input').value=code;
+  const wo=woData.find(w=>w.id===code);
+  const asset=assetData.find(a=>a.id===code);
+  const result=document.getElementById('qr-result');
+
+  if(wo){
+    const bClass=wo.status==='Явагдаж байна'?'b-prog':wo.status==='Дууссан'?'b-done':wo.status==='Хойшлогдсон'?'b-hold':'b-open';
+    result.innerHTML=`
+      <div class="qr-result-title">✅ Work Order олдлоо</div>
+      <div class="qr-result-row"><span class="qr-result-key">WO дугаар</span><span class="qr-result-val">${wo.id}</span></div>
+      <div class="qr-result-row"><span class="qr-result-key">Тайлбар</span><span class="qr-result-val">${wo.desc}</span></div>
+      <div class="qr-result-row"><span class="qr-result-key">Asset</span><span class="qr-result-val">${wo.asset} · ${wo.loc}</span></div>
+      <div class="qr-result-row"><span class="qr-result-key">Хариуцагч</span><span class="qr-result-val">${wo.resp}</span></div>
+      <div class="qr-result-row"><span class="qr-result-key">Эрэмбэ</span><span class="qr-result-val">${wo.pri}</span></div>
+      <div class="qr-result-row"><span class="qr-result-key">Статус</span><span class="qr-result-val"><span class="badge ${bClass}">${wo.status}</span></span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+        <button class="action-btn action-primary" onclick="closeDetail();openWODetail(woData.find(x=>x.id==='${wo.id}'))" style="border-radius:8px;padding:9px;">Дэлгэрэнгүй</button>
+        <button class="action-btn action-print" onclick="openPrintForm(woData.find(x=>x.id==='${wo.id}'))" style="border-radius:8px;padding:9px;">🖨️ Хэвлэх</button>
+      </div>`;
+    result.style.background='var(--ok-l)';result.style.borderColor='var(--ok)';
+    result.classList.add('show');
+    showToast('✅ '+code+' олдлоо!');
+    if(cameraActive)stopCamera();
+  } else if(asset){
+    const dotClass=asset.status==='ok'?'dot-ok':asset.status==='warn'?'dot-warn':'dot-danger';
+    const statusColor=asset.status==='ok'?'var(--ok)':asset.status==='warn'?'var(--warn)':'var(--danger)';
+    result.innerHTML=`
+      <div class="qr-result-title" style="color:var(--c2);">⚙️ Asset олдлоо</div>
+      <div class="qr-result-row"><span class="qr-result-key">Asset ID</span><span class="qr-result-val">${asset.id}</span></div>
+      <div class="qr-result-row"><span class="qr-result-key">Нэр</span><span class="qr-result-val">${asset.name}</span></div>
+      <div class="qr-result-row"><span class="qr-result-key">Ангилал</span><span class="qr-result-val">${asset.cat}</span></div>
+      <div class="qr-result-row"><span class="qr-result-key">Байршил</span><span class="qr-result-val">${asset.loc}</span></div>
+      <div class="qr-result-row"><span class="qr-result-key">Загвар</span><span class="qr-result-val">${asset.model}</span></div>
+      <div class="qr-result-row"><span class="qr-result-key">Статус</span><span class="qr-result-val" style="color:${statusColor}">${asset.statusText}</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+        <button class="action-btn action-primary" onclick="closeDetail();openAssetDetail('${asset.id}')" style="border-radius:8px;padding:9px;">Дэлгэрэнгүй</button>
+        <button class="action-btn action-secondary" onclick="showToast('WO үүслээ')" style="border-radius:8px;padding:9px;">+ WO нэмэх</button>
+      </div>`;
+    result.style.background='var(--c4)';result.style.borderColor='var(--c3)';
+    result.classList.add('show');
+    showToast('⚙️ '+code+' олдлоо!');
+    if(cameraActive)stopCamera();
+  } else {
+    result.innerHTML=`<div class="qr-result-title" style="color:var(--danger);">❌ Олдсонгүй</div><div style="font-size:12px;color:var(--muted);">"${code}" кодтой WO эсвэл Asset олдсонгүй. WO-2460, R-001 гэх мэт оруулна уу.</div>`;
+    result.style.background='var(--danger-l)';result.style.borderColor='var(--danger)';
+    result.classList.add('show');
+  }
+}
+
+// ===== TOAST =====
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
